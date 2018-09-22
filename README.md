@@ -8,7 +8,7 @@ Yii2 client for SproutVideo (http://sproutvideo.com)
 1. Run the [Composer](http://getcomposer.org/download/) command to install the latest version:
 
     ```bash
-    composer require abushamleh/yii2-sprout-video
+    composer require abushamleh/yii2-sprout-video "dev-master"
     ```
 2. Add the component to `config/main.php`
 
