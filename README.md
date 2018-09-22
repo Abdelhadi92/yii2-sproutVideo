@@ -1,0 +1,507 @@
+yii2-sproutVideo
+=========
+Yii2 client for SproutVideo (http://sproutvideo.com)
+
+
+## Installation
+
+1. Run the [Composer](http://getcomposer.org/download/) command to install the latest version:
+
+    ```bash
+    composer require abushamleh/yii2-sprout-video
+    ```
+2. Add the component to `config/main.php`
+
+    ```php
+    'components' => [
+        // ...
+        'sproutVideo' => [
+            'class'   => 'abushamleh\sproutVideo\Client',
+            'api_key' => 'your api key',
+        ],
+        // ...
+    ],
+    ```
+
+# Videos
+The following methods are available: `list_videos`, `get_video`, `create_video`, `update_video`, `replace_video`, `delete_video`.
+
+## list_videos
+By default the videos listing is paginated with 25 videos per page and sorted by upload date in ascending order. You can pass two parameters to control the paging: page and per_page. You can also pass in the id of a tag to just return the videos tagged with that tag.
+
+```php
+<?php
+Yii::$app->sproutVideo->video::list_videos();
+Yii::$app->sproutVideo->video::list_videos(array('per_page' => 10));
+Yii::$app->sproutVideo->video::list_videos(array('per_page' => 10, 'page' => 2));
+Yii::$app->sproutVideo->video::list_videos(array('tag_id' => 'abc')));
+?>
+```
+
+## get_video
+The string passed to get_video is the ID of a SproutVideo video.
+
+```php
+<?php
+Yii::$app->sproutVideo->video::get_video('abc123');
+?>
+```
+
+## create_video
+The most basic upload you can perform is to just pass the path to the video file to the method. The title of the video will default to the name of the file.
+
+```php
+<?php
+Yii::$app->sproutVideo->video::create_video('/path/to/video.mp4');
+?>
+```
+
+You can set the title as well as many other parameters by passing them as a array
+
+ ```php
+ <?php
+ Yii::$app->sproutVideo->video::create_video('/path/to/video.mp4', array('title' => 'My Awesome Video', 'description' => 'This video is great', 'privacy' => 2));
+ ?>
+```
+
+You can also apply any number of tags to the new upload by passing their ids along:
+
+```php
+<?php
+Yii::$app->sproutVideo->video::create_video('/path/to/video.mp4', array('tags' => array('ec61', 'abc123'));
+?>
+```
+
+You can also create and apply tags on the fly when uploading by passing along tag names:
+
+```php
+<?php
+Yii::$app->sproutVideo->video::create_video('/path/to/video.mp4', array('tag_names' => array('Tag One', 'Tag Two'));
+?>
+```
+
+
+
+You can also specify a webhook url. We'll send an HTTP POST with the video json when the video has finished processing or if there was an error during processing:
+
+```php
+<?php
+Yii::$app->sproutVideo->video::create_video('/path/to/video.mp4', array('notification_url' => 'http://example.com/webhook_url'));
+?>
+```
+
+## update_video
+ The first parameter is the id of the video you wish to edit. The second parameter is a array of attributes to update on the video.
+
+```php
+<?php
+Yii::$app->sproutVideo->video::update_video('abc123', array('title' => 'Updated Title'));
+?>
+```
+
+## replace_video
+The first parameter is the id of the video you wish to replace. The second parameter is the local path to the video file.
+
+```php
+<?php
+Yii::$app->sproutVideo->video::replace_video('abc123', '/path/to/video.mp4');
+?>
+```
+
+## Tags
+To add a tag to a video, make sure to include all of the tags currently associated with the video. For instance, if the video already has tags with the ids "abc" and "123", and you want to add a tag with the id "def", pass "abc", "123" and "def" to the update method.
+
+```php
+<?php
+Yii::$app->sproutVideo->video::update_video('abc123', 'tags' => array("abc", "123", "def"));
+?>
+```
+
+If you want to remove a tag from a video, remove the tag from the list of tags on the video but make sure to include all of the tags you wish to keep. For instance, if you now want to remove the tag with id "123" from the example above, pass in "abc" and "def"
+
+```php
+<?php
+Yii::$app->sproutVideo->video::update_video("abc123", array('tags' => array("abc","def"));
+?>
+```
+
+You can remove all of the tags from a video by just passing an empty array as the tags parameter.
+
+```php
+<?php
+Yii::$app->sproutVideo->video::update_video('abc123', array('tags' => array()));
+?>
+```
+
+## Upload poster frame
+You can upload a custom poster frame for a video by calling the upload_poster_frame method. The first parameter is the id of the video for wish you'd like the poster frame to be associated and the second parameter is the path to the image file.
+```php
+<?php
+Yii::$app->sproutVideo->video::upload_poster_frame('abc123','/path/to/video.mp4');
+?>
+```
+
+
+## delete_video
+Pass in the id of the video you wish to delete.
+
+```php
+<?php
+Yii::$app->sproutVideo->video::delete_video('abc123');
+?>
+```
+
+## Signed Embed Codes
+You can use this convenience method to sign an embed code. It will return the embed code URL which can be used to build an iframe embed code.
+
+```php
+<?php
+Yii::$app->sproutVideo->video::signed_embed_code($video_id, $security_token, $query_parameters, $expiration_time, $protocol);
+?>
+```
+
+### Parameters
+video_id - *String* ( *Required* )
+: The id of the video for which you're generating the signed embed code
+
+security_token - *String* ( *Required* )
+: The security token of the video for which you're generatingn the signed embed code
+
+query_parameteres - *Array* ( *Optional* )
+: A array of query parameters to be passed to the embed code. Example: `array('type' => 'hd', 'autoplay' => 'true')`
+
+expiration_time - *Integer* ( *Optional* )
+: The number of seconds from the Epoc that this signed embed code should expire. This defaults to 5 minutes from the time the signed embed code was generated.
+
+protocol - *String* ( *Optional* )
+: `http` or `https`. Defaults to `http`
+
+### Examples
+```php
+<?php
+Yii::$app->sproutVideo->video::signed_embed_code('abc123','def456'); #sign a base embed code with no other options
+Yii::$app->sproutVideo->video::signed_embed_code('abc123','def456', array('type' => 'hd')); #set parameters for the embed code such as changing the default video type to HD
+Yii::$app->sproutVideo->video::signed_embed_code('abc123','def456', array(), 1368127991); #set a specific expiration time for the signed embed code. (By default the expiration time is set to 5 minutes from the time the signed embed code was generated).
+Yii::$app->sproutVideo->video::signed_embed_code('abc123','def456', array(), null, 'https'); #Use https instead of http
+?>
+```
+# Upload Tokens
+The following methods are available: `create_upload_token`
+
+## create_upload_token
+```php
+<?php
+Yii::$app->sproutVideo->uploadToken::create_upload_token();
+Yii::$app->sproutVideo->uploadToken::create_upload_token(array('return_url' => 'http://example.com'));
+Yii::$app->sproutVideo->uploadToken::create_upload_token(array('return_url' => 'http://example.com', 'seconds_valid' => 3600));
+?>
+```
+
+# Tags
+The following methods are available: `list_tags`, `create_tag`, `get_tag`, `update_tag`, `delete_tag`.
+
+## list_tags
+By default the tag listing is paginated with 25 tags per page and sorted by created at date in ascending order. You can pass two parameters to control the paging: page and per_page.
+
+```php
+<?php
+Yii::$app->sproutVideo->tag::list_tags();
+Yii::$app->sproutVideo->tag::list_tags('per_page' => 10);
+Yii::$app->sproutVideo->tag::list_tags('per_page' => 10, 'page' => 2);
+?>
+```
+
+## create_tag
+
+```php
+<?php
+Yii::$app->sproutVideo->tag::create_tag(array('name' => 'new tag'));
+?>
+```
+
+## update_tag
+```php
+<?php
+Yii::$app->sproutVideo->tag::update_tag('abc123', array('name' => 'updated tag name'));
+?>
+```
+
+## delete_tag
+Pass in the id of the tag you wish to delete.
+
+```php
+<?php
+Yii::$app->sproutVideo->tag::delete_tag('abc123');
+?>
+```
+
+# Playlists
+The following methods are available: `list_playlists`, `create_playlist`, `get_playlsit`, `update_playlist`, `delete_playlsit`.
+##list_playlists
+By default the playlist listing is paginated with 25 playlists per page and sorted by created at date in ascending order. You can pass two parameters to control the paging: page and per_page.
+
+```php
+<?php
+Yii::$app->sproutVideo->playlist::list_playlists();
+Yii::$app->sproutVideo->playlist::list_playlists(array('per_page' => 10));
+Yii::$app->sproutVideo->playlist::list_playlists(array('per_page' => 10, 'page' => 2));
+?>
+```
+
+## create_playlist
+You can add videos to a playlist when creating it by passing in the videos you'd like to add in the videos parameter in the order you'd like them to appear.
+
+```php
+<?php
+Yii::$app->sproutVideo->playlist::create_playlist(array(
+  'title' => 'New Playlist',
+  'privacy' => 2,
+  'videos' => array('abc123','def456','ghi789'));
+?>
+```
+## update_playlist
+
+```php
+<?php
+Yii::$app->sproutVideo->playlist::update_playlist('abc123', array('title' => 'Update Playlist Title'));
+?>
+```
+### videos
+To add a video to a playlist, make sure to include all of the videos currently associated with that playlist. For instance if the playlist already has videos with the ids "abc" and "123" and you want to add a video with the id "def" do pass "abc", "123" and "def" to the update method.
+
+```php
+<?php
+Yii::$app->sproutVideo->playlist::update_playlist('abc123', array('videos' => array("abc", "123", "def")));
+?>
+```
+
+If you want to remove a video from a playlist, remove the video from the list of videos in the playlist but make sure to include all of the videos you wish to keep. For instance, if you now want to remove the video with id "123" from the example above, pass in "abc" and "def"
+
+```php
+<?php
+Yii::$app->sproutVideo->playlist::update_playlist("abc123", array('videos' => array("abc","def")));
+?>
+```
+
+You can remove all of the videos from a playlist by just passing an empty array as the videos parameter.
+
+```php
+<?php
+Yii::$app->sproutVideo->playlist::update_playlist('abc123', array('videos' => array()));
+?>
+```
+
+##d elete_playlist
+Pass in the id of the playlist you wish to delete.
+
+```php
+<?php
+Yii::$app->sproutVideo->playlist::delete_playlist('abc123');
+?>
+```
+
+# Logins
+The following methods are available: `list_logins`, `create_login`, `get_login`, `update_login`, `delete_login`
+
+## list
+By default the login listing is paginated with 25 tags per page and sorted by created at date in ascending order. You can pass two parameters to control the paging: page and per_page.
+
+```php
+<?php
+Yii::$app->sproutVideo->login::list_logins();
+Yii::$app->sproutVideo->login::list_logins(array('per_page' => 10));
+Yii::$app->sproutVideo->login::list_logins(array('per_page' => 10, 'page' => 2));
+?>
+```
+
+## create_login
+create_login takes two required parameters, `email` and `password`, which will be used to allow a viewer to login to watch a video if the login has an associated `access_grant` for that video.
+
+```php
+<?php
+Yii::$app->sproutVideo->login::create_login(array(
+  'email' => 'test@example.com',
+  'password' => 'thisisthepassword'));
+?>
+```
+
+## get_login
+The string passed to get_login is the ID of a SproutVideo login.
+
+```php
+<?php
+Yii::$app->sproutVideo->login::get_login('abc123');
+?>
+```
+
+## update_login
+
+You can change the password for a login.
+
+```php
+<?php
+Yii::$app->sproutVideo->login::update_login('abc123',array(
+  'password' => 'newpassword'));
+?>
+```
+
+## delete_login
+Pass in the id of the login you wish to delete.
+
+```php
+<?php
+Yii::$app->sproutVideo->login::delete_login('asdf1234');
+?>
+```
+# Access Grants
+The following methods are available: `list_access_grants`, `create_access_grant`, `get_access_grant`, `update_acces_grant`, `delete_access_grant`
+
+## list_access_grants
+By default the access grant listing is paginated with 25 tags per page and sorted by created at date in ascending order. You can pass two parameters to control the paging: page and per_page.
+
+```php
+<?
+Yii::$app->sproutVideo->accessGrant::list_access_grants();
+Yii::$app->sproutVideo->accessGrant::list(array('per_page' => 10));
+Yii::$app->sproutVideo->accessGrant::list(array('per_page' => 10, 'page' => 2));
+?>
+```
+
+## create_access_grant
+create_access_grant takes two required parameters, `video_id` and `login_id`, which will be used to allow a viewer to login to watch a video based on the other optional parameters.
+
+```php
+<?php
+Yii::$app->sproutVideo->accessGrant::create_access_grant(array(
+  'video_id' => 'abc123',
+  'login_id' => 'abc123'));
+?>
+```
+
+## get_access_grant
+The string passed to get_access_grant is the ID of a SproutVideo login.
+
+```php
+<?php
+Yii::$app->sproutVideo->accessGrant::get_access_grant('abc123');
+?>
+```
+
+## update_access_grant
+
+You can change the optional parameters for an access grant.
+
+```php
+<?php
+Yii::$app->sproutVideo->accessGrant.update_access_grant('abc123', array(
+  'allowed_plays' => 20,
+  'access_ends_at' => '2015-04-15T00:00:00+00:00'));
+?>
+```
+
+## delete_access_grant
+Pass in the id of the access grant you wish to delete.
+
+```php
+<?php
+Yii::$app->sproutVideo->accessGrant::delete_access_grant('asdf1234')
+?>
+```
+# Analytics
+The following methods are available through the API client for analytics:
+
+* play_counts
+* domains
+* geo
+* video_types
+* playback types
+* device_types
+
+Check the API documentation for more information about the data returned by these calls.
+
+Each method can be called on it's own for overall account data for all time like this:
+```php
+<?php
+Yii::$app->sproutVideo->analytics::play_counts();
+Yii::$app->sproutVideo->analytics::domains();
+Yii::$app->sproutVideo->analytics::geo();
+Yii::$app->sproutVideo->analytics::video_types();
+Yii::$app->sproutVideo->analytics::playback_types();
+Yii::$app->sproutVideo->analytics::device_types();
+?>
+```
+Each method can also take an options array containing a :video_id for retrieving overall data for a specific video:
+```php
+<?php
+Yii::$app->sproutVideo->analytics::play_counts(array('video_id' => 'abc123'));
+Yii::$app->sproutVideo->analytics::domains(array('video_id' => 'abc123'));
+Yii::$app->sproutVideo->analytics::geo(array('video_id' => 'abc123'));
+Yii::$app->sproutVideo->analytics::video_types(array('video_id' => 'abc123'));
+Yii::$app->sproutVideo->analytics::playback_types(array('video_id' => 'abc123'));
+Yii::$app->sproutVideo->analytics::device_types(array('video_id' => 'abc123'));
+?>
+```
+Each method can also take an optional :start_date and :end_date to specify a date range for the returned data:
+```php
+<?php
+Yii::$app->sproutVideo->analytics::play_counts(array('start_date' => '2013-01-01'));
+Yii::$app->sproutVideo->analytics::device_types(array('video_id' => 'abc123', 'end_date' => '2012-12-31'));
+?>
+```
+
+Lastly, the geo method can take an optional :country to retrieve playback data by city within that country
+```php
+<?php
+Yii::$app->sproutVideo->analytics::geo(array('video_id' => 'abc123', 'country' => 'US'));
+?>
+```
+
+# Engagement
+You can grab the total number of seconds of your videos that have been watched like this:
+```php
+<?php
+Yii::$app->sproutVideo->analytics::engagement();
+?>
+```
+
+You can grab engagement for a specific video like so:
+```php
+<?php
+Yii::$app->sproutVideo->analytics::engagement(array('video_id' => 'abc123'));
+?>
+```
+
+Lastly, you can grab every single playback session for a video like this:
+```php
+<?php
+Yii::$app->sproutVideo->analytics::engagement_sessions('abc123')
+Yii::$app->sproutVideo->analytics::engagement_sessions('abc123', array('page' => 3));
+Yii::$app->sproutVideo->analytics::engagement_sessions('abc123', array('page' => 3, 'per_page' => 40));
+?>
+```
+
+You can also grab engagement sessions for a video for a specific email address like so:
+```php
+<?php
+Yii::$app->sproutVideo->analytics::engagement_sessions('abc123', array('vemail' => 'test@example.com'));
+?>
+```
+
+# Account
+The following methods are available: `get_account`, `update_account`.
+
+## get_account
+
+```php
+<?php
+Yii::$app->sproutVideo->account::get_account();
+?>
+```
+
+## update_account
+
+```php
+<?php
+Yii::$app->sproutVideo->account::update_account(array('download_hd' => true));
+?>
+```
