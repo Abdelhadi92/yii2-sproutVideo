@@ -1,0 +1,22 @@
+{
+    "name": "abushamleh/yii2-sprout-video",
+    "description": "Yii2 client for SproutVideo (http://sproutvideo.com)",
+    "keywords": ["yii2", "sproutVideo", "s3", "yii2-sproutVideo", "Abdelhadi Abu-Shamleh"],
+    "type": "yii2-extension",
+    "authors": [
+        {
+            "name": "Abdelhadi Abu-Shamleh",
+            "email": "abushamleh92@gmail.com"
+        }
+    ],
+    "require": {
+        "sproutvideo/sproutvideo": "1.1.0",
+        "yiisoft/yii2": "~2.0"
+    },
+    "license": "MIT",
+    "autoload": {
+        "psr-4": {
+            "abushamleh\\sproutVideo\\": ""
+        }
+    }
+}
