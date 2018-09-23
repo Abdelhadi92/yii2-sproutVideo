@@ -27,7 +27,7 @@ class Client extends Component
 
     public function __get($name)
     {
-        $class = 'SproutVideo\\'.$name;
+        $class = 'SproutVideo\\'.ucfirst($name);
         if (class_exists($class)){
             return $class;
         }
